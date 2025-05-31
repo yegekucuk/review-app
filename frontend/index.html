@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Review App</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; }
+    textarea { width: 100%; height: 80px; }
+    button { margin-top: 10px; }
+    .review { border-bottom: 1px solid #ccc; padding: 10px 0; }
+  </style>
+</head>
+<body>
+  <h1>Leave a Review</h1>
+  <form id="review-form">
+    <textarea name="text" required></textarea><br/>
+    <button type="submit">Submit</button>
+  </form>
+  <h2>Reviews</h2>
+  <div id="reviews"></div>
+
+  <script>
+    const form = document.getElementById('review-form');
+    const reviewsDiv = document.getElementById('reviews');
+
+    async function loadReviews() {
+      const res = await fetch('/api/reviews');
+      const data = await res.json();
+      reviewsDiv.innerHTML = data.map(r => `
+        <div class="review">
+          <p>${r.text}</p>
+          <small>${new Date(r.timestamp).toLocaleString()}</small>
+        </div>
+      `).join('');
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const text = form.text.value.trim();
+      if (!text) return;
+      await fetch('/api/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text })
+      });
+      form.reset();
+      loadReviews();
+    });
+
+    loadReviews();
+  </script>
+</body>
+</html>
